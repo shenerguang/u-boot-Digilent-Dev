@@ -26,6 +26,16 @@
 #define ZYNQ_NAND_BASEADDR		0xE1000000
 #define ZYNQ_DDRC_BASEADDR		0xF8006000
 #define ZYNQ_EFUSE_BASEADDR		0xF800D000
+#define ZYNQ_USB_BASEADDR0		0xE0002000
+#define ZYNQ_USB_BASEADDR1		0xE0003000
+
+/* Bootmode setting values */
+#define ZYNQ_BM_MASK		0x0F
+#define ZYNQ_BM_QSPI		0x01
+#define ZYNQ_BM_NOR		0x02
+#define ZYNQ_BM_NAND		0x04
+#define ZYNQ_BM_SD		0x05
+#define ZYNQ_BM_JTAG		0x0
 
 /* Reflect slcr offsets */
 struct slcr_regs {

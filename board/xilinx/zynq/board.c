@@ -13,19 +13,12 @@
 
 DECLARE_GLOBAL_DATA_PTR;
 
-/* Bootmode setting values */
-#define BOOT_MODES_MASK		0x0000000F
-#define QSPI_MODE		0x00000001
-#define NOR_FLASH_MODE		0x00000002
-#define NAND_FLASH_MODE		0x00000004
-#define SD_MODE			0x00000005
-#define JTAG_MODE		0x00000000
-
 #ifdef CONFIG_FPGA
 Xilinx_desc fpga;
 
 /* It can be done differently */
 Xilinx_desc fpga010 = XILINX_XC7Z010_DESC(0x10);
+Xilinx_desc fpga015 = XILINX_XC7Z015_DESC(0x15);
 Xilinx_desc fpga020 = XILINX_XC7Z020_DESC(0x20);
 Xilinx_desc fpga030 = XILINX_XC7Z030_DESC(0x30);
 Xilinx_desc fpga045 = XILINX_XC7Z045_DESC(0x45);
@@ -42,6 +35,9 @@ int board_init(void)
 	switch (idcode) {
 	case XILINX_ZYNQ_7010:
 		fpga = fpga010;
+		break;
+	case XILINX_ZYNQ_7015:
+		fpga = fpga015;
 		break;
 	case XILINX_ZYNQ_7020:
 		fpga = fpga020;
@@ -63,7 +59,8 @@ int board_init(void)
 	 */
 	writel(0x26d, 0xe0001014);
 
-#ifdef CONFIG_FPGA
+#if (defined(CONFIG_FPGA) && !defined(CONFIG_SPL_BUILD)) || \
+    (defined(CONFIG_SPL_FPGA_SUPPORT) && defined(CONFIG_SPL_BUILD))
 	fpga_init();
 	fpga_add(fpga_xilinx, &fpga);
 #endif
@@ -72,20 +69,20 @@ int board_init(void)
 
 int board_late_init(void)
 {
-	switch ((zynq_slcr_get_boot_mode()) & BOOT_MODES_MASK) {
-	case QSPI_MODE:
+	switch ((zynq_slcr_get_boot_mode()) & ZYNQ_BM_MASK) {
+	case ZYNQ_BM_QSPI:
 		setenv("modeboot", "qspiboot");
 		break;
-	case NAND_FLASH_MODE:
+	case ZYNQ_BM_NAND:
 		setenv("modeboot", "nandboot");
 		break;
-	case NOR_FLASH_MODE:
+	case ZYNQ_BM_NOR:
 		setenv("modeboot", "norboot");
 		break;
-	case SD_MODE:
+	case ZYNQ_BM_SD:
 		setenv("modeboot", "sdboot");
 		break;
-	case JTAG_MODE:
+	case ZYNQ_BM_JTAG:
 		setenv("modeboot", "jtagboot");
 		break;
 	default:
@@ -96,7 +93,6 @@ int board_late_init(void)
 	return 0;
 }
 
-#ifdef CONFIG_CMD_NET
 int board_eth_init(bd_t *bis)
 {
 	u32 ret = 0;
@@ -130,7 +126,6 @@ int board_eth_init(bd_t *bis)
 #endif
 	return ret;
 }
-#endif
 
 #ifdef CONFIG_CMD_MMC
 int board_mmc_init(bd_t *bd)
